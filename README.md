@@ -115,3 +115,10 @@ sudo pacman -S flatpak          # pack/pacr 的 Flatpak 源
 sudo pacman -S downgrade        # pacd 降级（位于 AUR）
 # opencode                      # pack 的 AUR AI 审查功能
 ```
+https://github.com/SHORiN-KiWATA
+# 鸣谢
+*排名不分先后*
+- [Shorin](https://github.com/SHORiN-KiWATA) 
+
+## 项目引用
+- [shorin-arch-setup](https://github.com/SHORiN-KiWATA/shorin-arch-setup)
