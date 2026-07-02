@@ -220,16 +220,57 @@ echo ""
 # --- 5. 安装脚本与提示词 ---
 echo -e "${CYAN}[5/5]${RESET} 安装 pack / pacr / pacd 到 ${BIN_DIR}..."
 
+# 下载重试函数（静默输出，失败时只显示自定义提示）
+download_with_retry() {
+    local url="$1"
+    local output="$2"
+    local max_retries=3
+    local retry=0
+    local temp_output="${output}.tmp"
+
+    rm -f "$temp_output" "$output"
+    while [[ $retry -lt $max_retries ]]; do
+        # 完全静默：重定向所有输出到 /dev/null
+        if curl -fsSL "$url" -o "$temp_output" >/dev/null 2>&1; then
+            if [[ -s "$temp_output" ]]; then
+                mv "$temp_output" "$output"
+                return 0
+            fi
+        fi
+        rm -f "$temp_output" "$output"
+        ((retry++))
+        echo -e "  ${YELLOW}下载失败，重试 $retry/$max_retries...${RESET}"
+        sleep 2
+    done
+    rm -f "$temp_output" "$output"
+    return 1
+}
+
 # 如果通过 curl | bash 运行，需要先下载脚本文件
-RAW_BASE="https://raw.githubusercontent.com/tingfeng347/archtools/main"
+RAW_BASE="https://raw.githubusercontent.com/YiHarvest/archtools/main"
 if [[ ! -f "$SCRIPT_DIR/bin/pack" ]] || [[ ! -f "$SCRIPT_DIR/bin/pacr" ]] || [[ ! -f "$SCRIPT_DIR/bin/pacd" ]]; then
     TMPDIR="$(mktemp -d)"
     mkdir -p "$TMPDIR/bin" "$TMPDIR/share/prompts"
     echo -e "  正在下载脚本..."
-    curl -fsSL "$RAW_BASE/bin/pack" -o "$TMPDIR/bin/pack"
-    curl -fsSL "$RAW_BASE/bin/pacr" -o "$TMPDIR/bin/pacr"
-    curl -fsSL "$RAW_BASE/bin/pacd" -o "$TMPDIR/bin/pacd"
-    curl -fsSL "$RAW_BASE/share/prompts/aur-review.md" -o "$TMPDIR/share/prompts/aur-review.md"
+
+    if ! download_with_retry "$RAW_BASE/bin/pack" "$TMPDIR/bin/pack"; then
+        echo -e "${RED}错误：下载 pack 失败，请检查网络连接或稍后重试。${RESET}"
+        rm -rf "$TMPDIR"
+        exit 1
+    fi
+    if ! download_with_retry "$RAW_BASE/bin/pacr" "$TMPDIR/bin/pacr"; then
+        echo -e "${RED}错误：下载 pacr 失败，请检查网络连接或稍后重试。${RESET}"
+        rm -rf "$TMPDIR"
+        exit 1
+    fi
+    if ! download_with_retry "$RAW_BASE/bin/pacd" "$TMPDIR/bin/pacd"; then
+        echo -e "${RED}错误：下载 pacd 失败，请检查网络连接或稍后重试。${RESET}"
+        rm -rf "$TMPDIR"
+        exit 1
+    fi
+    if ! download_with_retry "$RAW_BASE/share/prompts/aur-review.md" "$TMPDIR/share/prompts/aur-review.md"; then
+        echo -e "${YELLOW}警告：下载 AUR 审查提示词失败，AUR 安全审查功能将不可用。${RESET}"
+    fi
     SCRIPT_DIR="$TMPDIR"
 fi
 
