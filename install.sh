@@ -247,7 +247,7 @@ download_with_retry() {
 }
 
 # 如果通过 curl | bash 运行，需要先下载脚本文件
-RAW_BASE="https://raw.githubusercontent.com/YiHarvest/archtools/main"
+RAW_BASE="https://raw.githubusercontent.com/tingfeng347/archtools/main"
 if [[ ! -f "$SCRIPT_DIR/bin/pack" ]] || [[ ! -f "$SCRIPT_DIR/bin/pacr" ]] || [[ ! -f "$SCRIPT_DIR/bin/pacd" ]]; then
     TMPDIR="$(mktemp -d)"
     mkdir -p "$TMPDIR/bin" "$TMPDIR/share/prompts"
